@@ -6,7 +6,7 @@ const localVue = createLocalVue()
 localVue.use(Vuex)
 
 describe("Counter", () => {
-  it("Sanity check", () => {
+  test("Sanity check", () => {
     expect(true).toBeTruthy()
   })
 
@@ -15,12 +15,18 @@ describe("Counter", () => {
   let increaseButton
   let store
   let actions
+  let state
+
   beforeEach(() => {
     actions = {
       increment: jest.fn(),
       decrement: jest.fn(),
     }
+    state = {
+      count: 0,
+    }
     store = new Vuex.Store({
+      state,
       actions,
     }) 
     wrapper = shallowMount(Counter, { store, localVue })
@@ -29,50 +35,56 @@ describe("Counter", () => {
   })
 
   describe("Elements exist check", () => {
-    it("Component exists", () => {
+    test("Component exists", () => {
       expect(wrapper.exists()).toBeTruthy()
     })
 
-    it("Decrease button exists", () => {
+    test("Decrease button exists", () => {
       expect(decreaseButton.exists()).toBeTruthy()
     })
 
-    it("Increase button exists", () => {
+    test("Increase button exists", () => {
       expect(increaseButton.exists()).toBeTruthy()
     })
   
-    it("Count exists", () => {
-      const count = wrapper.find("span")
-      expect(count.exists()).toBeTruthy()
+    test("Count exists", () => {
+      const countSpan = wrapper.find("span")
+      expect(countSpan.exists()).toBeTruthy()
     })
   })
 
   describe("Elements text check", () => {
-    it("Decrease button text is Decrease", () => {
+    test("Decrease button text is Decrease", () => {
       expect(decreaseButton.text()).toBe("Decrease")
     })
   
-    it("Increase button text is Increase", () => {
+    test("Increase button text is Increase", () => {
       expect(increaseButton.text()).toBe("Increase")
     })
 
-    it("Count text is k", () => {
-
+    test("Count text should be same as state count", () => {
+      const countSpan = wrapper.find("span")
+      expect(countSpan.text()).toBe(store.state.count + "k")
     })
-    
   })
 
   describe("Functionality check", () => {
-    it("Decrease button calls decrement action", async () => {  
-      const decreaseButton = wrapper.findAll("button").at(0)
+    test("Decrease button calls decrement action", async () => {  
       await decreaseButton.trigger("click")
       expect(actions.decrement).toBeCalledTimes(1)
     })
 
-    it("Increase button calls increment action", async () => {
-      const increaseButton = wrapper.findAll("button").at(1)
+    test("Increase button calls increment action", async () => {
       await increaseButton.trigger("click")
       expect(actions.increment).toBeCalledTimes(1)
+    })
+
+    test("When increase is clicked twice and decrease clicked once", async () => {
+      await increaseButton.trigger("click")
+      await increaseButton.trigger("click")
+      await decreaseButton.trigger("click")
+      expect(actions.increment).toBeCalledTimes(2)
+      expect(actions.decrement).toBeCalledTimes(1)
     })
   })
 })
