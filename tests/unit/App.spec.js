@@ -1,32 +1,9 @@
-import { shallowMount, createLocalVue } from "@vue/test-utils"
+import { shallowMount } from "@vue/test-utils"
 import App from "@/App"
-import Vuex from "vuex"
-
-const localVue = createLocalVue()
-localVue.use(Vuex)
-
 
 describe("App", () => {
-    let wrapper
-    let store
-    let state
-    let getters
-
-    beforeEach(() => {
-        getters = {
-            getCount: jest.fn()
-        }
-        state = {
-            count: 0
-        }
-        store = {
-            state,
-            getters
-        }
-        wrapper = shallowMount(App, { store, localVue })
-    })
-
     describe("Elements exist check", () => {
+        const wrapper = customMount()
         test("Component exists", () => {
             expect(wrapper.exists()).toBeTruthy()
         })
@@ -37,7 +14,8 @@ describe("App", () => {
         })
     })
 
-    test("Title is 'Daily Corona Cases in Turkey'", () => {
+    test("Title text is correct", () => {
+        const wrapper = customMount()
         const title = wrapper.find("h1")
         expect(title.text()).toBe("Daily Corona Cases in Turkey")
     })
@@ -49,17 +27,22 @@ describe("App", () => {
             { count: 2, message: "So safe. Case count is 2k", class: "safe" }
         ]
         for(let testCase of testCases) {
-            test("Message and class change according to count", async () => {
+            test("Message and class change accordingly", async () => {
                 const state = {
                     count: testCase.count
                 }
-                const store = {
+                const getters = {
+                    getCount: testCase.count
+                }
+                const $store = {
                     state,
+                    getters
                 }
-                const computed = {
-                    getCount: () => state.count
-                }
-                const wrapper = shallowMount(App, { store, computed, localVue })
+                const wrapper = shallowMount(App, {
+                    mocks: {
+                        $store,
+                    }
+                })
                 const notifArea = wrapper.find("div.notificationArea")
                 const msg = notifArea.text()
                 const notifClasses = notifArea.classes()
@@ -70,3 +53,21 @@ describe("App", () => {
         }
     })
 })
+
+function customMount() {
+    const getters = {
+        getCount: jest.fn()
+    }
+    const state = {
+        count: 0
+    }
+    const $store = {
+        state,
+        getters
+    }
+    return shallowMount(App, {
+        mocks: {
+            $store
+        }
+    })
+}
